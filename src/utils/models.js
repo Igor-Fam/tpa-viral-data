@@ -65,7 +65,8 @@ export function siro({
   alpha = 0.5,
   gamma = 0.14,
   beta = 0.065,
-  start = 0
+  start = 0,
+  end = 0
 }) {
   let R0,
     step = 1,
@@ -83,8 +84,6 @@ export function siro({
 
   R0 = alpha / (gamma + beta);
 
-  console.log('dia: '+days);
-
   for (let i = 1; i < days * step; i++) {
     S[i] = S[i - 1] + -(alpha / population) * S[i - 1] * I[i - 1] * deltaT;
     I[i] =
@@ -99,19 +98,19 @@ export function siro({
       labels: generateLabels(days),
       datasets: [
         {
-          data: dataShown(S, start),
+          data: dataShown(S, start, end),
           color: colors.susceptible,
         },
         {
-          data: dataShown(I, start),
+          data: dataShown(I, start, end),
           color: colors.infectious,
         },
         {
-          data: dataShown(R, start),
+          data: dataShown(R, start, end),
           color: colors.recovered,
         },
         {
-          data: dataShown(D, start),
+          data: dataShown(D, start, end),
           color: colors.death,
         },
       ],

@@ -11,13 +11,13 @@ import {
 
 import axios from "axios";
 
-import DatePicker from 'react-native-date-picker'
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import InputComponent from "../../components/InputComponent/index.js";
 
 import { LineChart } from "react-native-chart-kit";
+
+import DatePicker from 'react-native-datepicker'
 
 import { siro } from "../../utils/models.js";
 
@@ -36,9 +36,13 @@ import {
 import styles from "./styles";
 
 export default function DynamicChartSIROBrazilExternal() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1)
+
   const [data, setData] = useState({});
   const [dataBrazil, setDataBrazil] = useState({});
   const [chartVisible, setChartVisible] = useState(false);
+  const [invalidDates, setInvalidDates] = useState(false);
 
   const [susceptible, setSusceptible] = useState("209300000");
   const [infectious, setInfectious] = useState("1");
@@ -48,7 +52,7 @@ export default function DynamicChartSIROBrazilExternal() {
   const [dateStartIndex, setDateStartIndex] = useState("0");
   const [dateEndIndex, setDateEndIndex] = useState("0");
   const [dateStart, setDateStart] = useState("2020-01-22");
-  const [dateEnd, setDateEnd] = useState("0");
+  const [dateEnd, setDateEnd] = useState(yesterday.toISOString().split('T')[0]);
 
   const [alpha, setAlpha] = useState("0.5");
   const [gamma, setGamma] = useState("0.14");
@@ -124,13 +128,17 @@ export default function DynamicChartSIROBrazilExternal() {
   function dateFilter(allData) {
     let dateFilterStart = allData.findIndex(line=>line.includes(dateStart));
     let dateFilterEnd = allData.findIndex(line=>line.includes(dateEnd));
-    if(dateFilterEnd>=dateFilterStart){
-      Alert.alert("Atenção!", "Datas inválidas!");
-      return (allData);
+    if(dateFilterEnd<=dateFilterStart){
+      setDateStartIndex(0);
+      setDateEndIndex(allData.length);
+      setInvalidDates(true);
+      return allData;
     }
+    setInvalidDates(false);
     setDateStartIndex(dateFilterStart);
     setDateEndIndex(dateFilterEnd);
-    return (allData.slice(dateFilterStart, allData.length));
+
+    return (allData.slice(dateFilterStart, dateFilterEnd));
   }
 
   function changeData() {
@@ -144,7 +152,8 @@ export default function DynamicChartSIROBrazilExternal() {
       beta,
       alpha,
       gamma,
-      dateStartIndex
+      dateStartIndex,
+      dateEndIndex
     );
     if (isValid.response) {
       let response = siro(isValid.message);
@@ -226,14 +235,14 @@ export default function DynamicChartSIROBrazilExternal() {
             value={dateStart}
             onChangeState={setDateStart}
           />
-        <DatePicker
-            mode='date'
-            date={dateEnd}
-            onDateChange={setDateEnd}
+        <InputComponent
+            title="Data de término"
+            placeholder="Ex.: 01-01-2021"
+            value={dateEnd}
+            onChangeState={setDateEnd}
           />
         </View>
-        
-
+        {invalidDates && (<Text style={{color: 'red', fontSize: 18, alignSelf: 'center', paddingBottom: 10 }}>Datas inválidas!</Text>)}
         <View style={styles.buttonContainer}>
           <TouchableHighlight
             onPress={changeData}

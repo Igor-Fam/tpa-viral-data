@@ -130,9 +130,13 @@ export function labels(data = []) {
 
 //retorna array com ate 30 valores, excluindo os demais
 //ex.:"0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19"  =>  "0"  "2"  "4"  "6"  "8"  "10"  "12"  "14"  "16"  "18"
-export function dataShown(data = [], start = 0) {
+export function dataShown(data = [], start = 0, end = 0) {
 
-  let newLabels = data.slice(start, data.length);
+  if(end!=0){
+    var newLabels = data.slice(start, end);
+  }else{
+    var newLabels = data.slice(start, data.length);
+  }
   let newLabelsSize = newLabels.length;
   let numberOfLabels = 30;
 
@@ -231,7 +235,8 @@ export function validationSiro(
   beta = 0,
   alpha = 0,
   gamma = 0,
-  start = 0
+  start = 0,
+  end = 0
 ) {
   return {
     response: true,
@@ -245,6 +250,7 @@ export function validationSiro(
       beta: parseFloat(beta),
       death: parseInt(death),
       start: parseInt(start),
+      end: parseInt(end),
     },
   };
 }
