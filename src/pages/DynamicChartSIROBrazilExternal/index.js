@@ -36,6 +36,7 @@ import {
 import styles from "./styles";
 
 export default function DynamicChartSIROBrazilExternal() {
+
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1)
 
