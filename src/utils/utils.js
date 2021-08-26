@@ -1,5 +1,8 @@
 import { Dimensions } from "react-native";
 
+import moment from 'moment';
+moment().format();
+
 export const chartWidth = Dimensions.get("window").width - 20;
 export const chartHeight = 220;
 export const segments = 5;
@@ -92,19 +95,20 @@ export function isNumber(value) {
 
 //gera array a partir de uma quantidade de dias informados (max 10 valores)
 //ex.: 30 dias => 0 3 6 9 12 15 18 21 24 27
-export function generateLabels(days) {
+export function generateLabels(start, end) {
+  let days = end-start;
   let labels = [];
   let maxNumberOfLabels = 10;
-  let intervalBetweenLabels = parseInt(days / maxNumberOfLabels);
+  let intervalBetweenLabels = days / maxNumberOfLabels;
 
   let aux = 1;
 
-  for (let i = 0; i < days; i++) {
-    if (i % intervalBetweenLabels == 0 && aux <= maxNumberOfLabels) {
-      aux++;
-      labels.push(i);
-    }
+  for (let i = start; i <= start + (maxNumberOfLabels) * intervalBetweenLabels; i += intervalBetweenLabels) {
+    let date = moment("2020-01-22", "YYYY-MM-DD").add(i, "d");
+    aux++;
+    labels.push(date.format("DD/MM/YYYY"));
   }
+  console.log(labels);
   return labels;
 }
 
@@ -138,7 +142,7 @@ export function dataShown(data = [], start = 0, end = 0) {
     var newLabels = data.slice(start, data.length);
   }
   let newLabelsSize = newLabels.length;
-  let numberOfLabels = 30;
+  let numberOfLabels = 150;
 
   if (newLabelsSize < numberOfLabels) return newLabels;
 
@@ -251,6 +255,43 @@ export function validationSiro(
       death: parseInt(death),
       start: parseInt(start),
       end: parseInt(end),
+    },
+  };
+}
+
+export function validationSiroParams(
+  days = 0,
+  susceptible = 0,
+  infectious = 0,
+  recovered = 0,
+  death = 0,
+  start = 0,
+  end = 0,
+  m = 0,
+  t0 = 0,
+  tr = 0,
+  ti = 0,
+  tf = 0,
+  r = 0,
+  b = 0
+) {
+  return {
+    response: true,
+    message: {
+      days: parseInt(days),
+      susceptible: parseInt(susceptible),
+      infectious: parseInt(infectious),
+      recovered: parseInt(recovered),
+      death: parseInt(death),
+      start: parseInt(start),
+      end: parseInt(end),
+      m: parseFloat(m),
+      t0: parseFloat(t0),
+      tr: parseFloat(tr),
+      ti: parseFloat(ti),
+      tf: parseFloat(tf),
+      r: parseFloat(r),
+      b: parseFloat(b),
     },
   };
 }

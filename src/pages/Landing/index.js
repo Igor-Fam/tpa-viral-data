@@ -36,6 +36,10 @@ export default function Landing({ navigation }) {
     navigation.navigate("DynamicChartSIROBrazilExternal");
   }
 
+  function navigateToDynamicChartSIROBrazilParams() {
+    navigation.navigate("DynamicChartSIROBrazilParams");
+  }
+
   function navigateToInfos() {
     navigation.navigate("Infos");
   }
@@ -52,6 +56,16 @@ export default function Landing({ navigation }) {
       <Text style={styles.title}>Viral Models</Text>
 
       <View>
+      <TouchableHighlight
+          underlayColor="#009083"
+          style={styles.button}
+          onPress={navigateToDynamicChartSIROBrazilParams}
+        >
+          <Text style={styles.buttonText}>
+            Gerar gráfico SIRO Brasil (Dinâmico) com parâmetros
+          </Text>
+        </TouchableHighlight>
+
         <TouchableHighlight
           underlayColor="#009083"
           style={styles.button}
