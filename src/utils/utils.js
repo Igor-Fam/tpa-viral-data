@@ -108,7 +108,7 @@ export function generateLabels(start, end) {
     aux++;
     labels.push(date.format("DD/MM/YYYY"));
   }
-  console.log(labels);
+  
   return labels;
 }
 
@@ -137,9 +137,9 @@ export function labels(data = []) {
 export function dataShown(data = [], start = 0, end = 0) {
 
   if(end!=0){
-    var newLabels = data.slice(start, end);
+    var newLabels = data.slice(0, end-start);
   }else{
-    var newLabels = data.slice(start, data.length);
+    var newLabels = data;
   }
   let newLabelsSize = newLabels.length;
   let numberOfLabels = 150;

@@ -138,19 +138,19 @@ export function siro_params({
   b = 0.201
 
 }) {
-
-  console.log(start);
+  
   let R0,
     step = 1,
     S = [],
     I = [],
     R = [],
     D = [],
-    a = [],
     gamma = (1-m)*(1/tr),
     beta = m*1/t0;
 
   const deltaT = 1 / step;
+
+  population = population - infectious - recovered - death;
 
   D[0] = death;
   R[0] = recovered;
@@ -161,14 +161,15 @@ export function siro_params({
 
   for (let i = 1; i < days * step; i++) {
 
-    a[i] = (i<ti ? 1 : (i>tf? r : ( (1-r)/(ti-tf)*(i-ti) + 1 )));
-    let alpha = a[i]*b;
+    let a = (i<ti ? 1 : (i>tf ? r : ( (1-r)/(ti-tf)*(i-ti) + 1 )));
+    let alpha = a*b;
 
-    S[i] = S[i - 1] + -(alpha / population) * S[i - 1] * I[i - 1] * deltaT;
+    S[i] = S[i - 1] - (alpha / population) * S[i - 1] * I[i - 1] * deltaT;
     I[i] = I[i - 1] + ((alpha / population) * S[i - 1] * I[i - 1] - (gamma + beta) * I[i - 1]) * deltaT;
     R[i] = R[i - 1] + gamma * I[i - 1] * deltaT;
     D[i] = D[i - 1] + beta * I[i - 1] * deltaT;
   }
+
   const data = {
     chart: {
       labels: generateLabels(start, end),

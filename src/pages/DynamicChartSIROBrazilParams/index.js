@@ -46,23 +46,23 @@ export default function DynamicChartSIROBrazilParams() {
   const [chartVisible, setChartVisible] = useState(false);
   const [invalidDates, setInvalidDates] = useState(false);
 
-  const [susceptible, setSusceptible] = useState("209300000");
+  const [susceptible, setSusceptible] = useState(209300000);
   const [infectious, setInfectious] = useState("1");
   const [recovered, setRecovered] = useState("0");
   const [death, setDeath] = useState("0");
   const [days, setDays] = useState("30");
   const [dateStartIndex, setDateStartIndex] = useState("0");
   const [dateEndIndex, setDateEndIndex] = useState("0");
-  const [dateStart, setDateStart] = useState("2020-01-22");
+  const [dateStart, setDateStart] = useState("2020-05-18");
   const [dateEnd, setDateEnd] = useState(yesterday.toISOString().split('T')[0]);
 
-  const [m, setM] = useState(0.0184);
-  const [t0, setT0] = useState(28.4);
-  const [tr, setTr] = useState(23.4);
-  const [ti, setTi] = useState(29.1);
-  const [tf, setTf] = useState(49.9);
-  const [r, setR] = useState(0.399);
-  const [b, setB] = useState(0.201);
+  const [m, setM] = useState(0.013);
+  const [t0, setT0] = useState(34.9);
+  const [tr, setTr] = useState(20.58);
+  const [ti, setTi] = useState(18.07);
+  const [tf, setTf] = useState(22.3);
+  const [r, setR] = useState(0.7);
+  const [b, setB] = useState(0.11);
   const [gamma, setGamma] = useState((1-m)*(1/tr));
   const [beta, setBeta] = useState(m*1/t0);
 
@@ -95,6 +95,10 @@ export default function DynamicChartSIROBrazilParams() {
           deaths.push(row[4]);
           infectious.push(row[2]-row[3]-row[4]);
         });
+        
+        setInfectious(infectious[0]);
+        setRecovered(recovered[0]);
+        setDeath(deaths[0]);
 
         const csvDataBrazil = {
           infectious: {
@@ -150,7 +154,7 @@ export default function DynamicChartSIROBrazilParams() {
   }
 
   function changeData() {
-
+    console.log("suscetible = "+susceptible); 
     let isValid = validationSiroParams(
       days,
       susceptible,
@@ -221,7 +225,7 @@ export default function DynamicChartSIROBrazilParams() {
             toFixed={3}
             step={0.001}
             minimumValue={0}
-            maximumValue={0.5}
+            maximumValue={0.8}
           />
 
         </View>
@@ -371,6 +375,7 @@ export default function DynamicChartSIROBrazilParams() {
               withInnerLines={withInnerLines}
               withVerticalLabels={withVerticalLabels}
             />
+            {console.log(data)}
             <LineChart
               data={
                 dataBrazil.recovered
