@@ -98,14 +98,12 @@ export function isNumber(value) {
 export function generateLabels(start, end) {
   let days = end-start;
   let labels = [];
-  let maxNumberOfLabels = 10;
+  let maxNumberOfLabels = 15;
   let intervalBetweenLabels = days / maxNumberOfLabels;
-
-  let aux = 1;
-
-  for (let i = start; i <= start + (maxNumberOfLabels) * intervalBetweenLabels; i += intervalBetweenLabels) {
+  console.log("start: "+start+", end: "+end);
+  for (let i = start; i <= start - 0.01 + (maxNumberOfLabels) * intervalBetweenLabels; i += intervalBetweenLabels) {
+    console.log(i);
     let date = moment("2020-01-22", "YYYY-MM-DD").add(i, "d");
-    aux++;
     labels.push(date.format("DD/MM/YYYY"));
   }
   
@@ -273,7 +271,8 @@ export function validationSiroParams(
   ti = 0,
   tf = 0,
   r = 0,
-  b = 0
+  b = 0,
+  forecast = false
 ) {
   return {
     response: true,
@@ -292,6 +291,7 @@ export function validationSiroParams(
       tf: parseFloat(tf),
       r: parseFloat(r),
       b: parseFloat(b),
+      forecast: forecast
     },
   };
 }

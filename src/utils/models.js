@@ -135,7 +135,8 @@ export function siro_params({
   ti = 29.1,
   tf = 49.9,
   r = 0.399,
-  b = 0.201
+  b = 0.201,
+  forecast = false
 
 }) {
   
@@ -172,7 +173,7 @@ export function siro_params({
 
   const data = {
     chart: {
-      labels: generateLabels(start, end),
+      labels: generateLabels((forecast ? start - 14 : start), end),
       datasets: [
         {
           data: dataShown(S, start, end),

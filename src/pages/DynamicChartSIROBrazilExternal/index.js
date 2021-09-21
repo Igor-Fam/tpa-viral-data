@@ -17,8 +17,6 @@ import InputComponent from "../../components/InputComponent/index.js";
 
 import { LineChart } from "react-native-chart-kit";
 
-import DatePicker from 'react-native-datepicker'
-
 import { siro } from "../../utils/models.js";
 
 import {

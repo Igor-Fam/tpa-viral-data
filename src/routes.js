@@ -13,6 +13,7 @@ import DynamicChartSIRO from "./pages/DynamicChartSIRO";
 import DynamicChartSIROBrazil from "./pages/DynamicChartSIROBrazil";
 import DynamicChartSIROBrazilExternal from "./pages/DynamicChartSIROBrazilExternal";
 import DynamicChartSIROBrazilParams from "./pages/DynamicChartSIROBrazilParams";
+import DynamicChartSIROForecast from "./pages/DynamicChartSIROForecast";
 
 import Details from "./pages/Details";
 
@@ -69,6 +70,13 @@ export default function Routes() {
           component={DynamicChartSIROBrazilParams}
           options={{
             title: "Modelo SIRO Brasil com parâmetros ajustados",
+          }}
+        />
+        <Stack.Screen
+          name="DynamicChartSIROForecast"
+          component={DynamicChartSIROForecast}
+          options={{
+            title: "Modelo SIRO Brasil com previsão para os próximos 15 dias",
           }}
         />
         <Stack.Screen

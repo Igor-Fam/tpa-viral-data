@@ -34,7 +34,7 @@ import {
 
 import styles from "./styles";
 
-export default function DynamicChartSIROBrazilParams() {
+export default function DynamicChartSIROBrazilForecast() {
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1)
@@ -85,7 +85,7 @@ export default function DynamicChartSIROBrazilParams() {
         setDays(`${csvBrazil.length}`);
 
         csvBrazil = dateFilter(csvBrazil);
-
+        
         csvBrazil.forEach((element) => {
           const row = element.split(",");
           confirmed.push(row[2]);
@@ -93,10 +93,9 @@ export default function DynamicChartSIROBrazilParams() {
           deaths.push(row[4]);
           infectious.push(row[2]-row[3]-row[4]);
         });
-        
-        setInfectious(infectious[0]);
-        setRecovered(recovered[0]);
-        setDeath(deaths[0]);
+        setInfectious(infectious[infectious.length-1]);
+        setRecovered(recovered[recovered.length-1]);
+        setDeath(deaths[deaths.length-1]);
 
         const csvDataBrazil = {
           infectious: {
@@ -136,23 +135,17 @@ export default function DynamicChartSIROBrazilParams() {
   }
 
   function dateFilter(allData) {
-    let dateFilterStart = allData.findIndex(line=>line.includes(dateStart));
-    let dateFilterEnd = allData.findIndex(line=>line.includes(dateEnd));
-    if(dateFilterEnd<=dateFilterStart){
-      setDateStartIndex(0);
-      setDateEndIndex(allData.length);
-      setInvalidDates(true);
-      return allData;
-    }
+    let forecastStart = allData.findIndex(line=>line.includes(dateStart));
+    let dateFilterStart = (forecastStart <= 14 ? 0 : forecastStart - 14)
+    let dateFilterEnd = forecastStart + 15;
     setInvalidDates(false);
-    setDateStartIndex(dateFilterStart);
+    setDateStartIndex(forecastStart);
     setDateEndIndex(dateFilterEnd);
 
-    return (allData.slice(dateFilterStart, dateFilterEnd));
+    return (allData.slice(dateFilterStart, forecastStart));
   }
 
   function changeData() {
-    console.log("suscetible = "+susceptible); 
     let isValid = validationSiroParams(
       days,
       susceptible,
@@ -167,10 +160,20 @@ export default function DynamicChartSIROBrazilParams() {
       ti,
       tf,
       r,
-      b
+      b,
+      true
     );
     if (isValid.response) {
       let response = siro_params(isValid.message);
+      console.log(response);
+      console.log(dataBrazil);
+      response.chart.datasets[1].data.shift();
+      response.chart.datasets[2].data.shift();
+      response.chart.datasets[3].data.shift();
+      Array.prototype.push.apply(dataBrazil.infectious.data, response.chart.datasets[1].data);
+      Array.prototype.push.apply(dataBrazil.recovered.data, response.chart.datasets[2].data);
+      Array.prototype.push.apply(dataBrazil.deaths.data, response.chart.datasets[3].data);
+      console.log(dataBrazil);
       setData(response);
       setChartVisible(true);
     } else {
@@ -195,10 +198,10 @@ export default function DynamicChartSIROBrazilParams() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView style={styles.container}>
-        <Text style={styles.title}>Modelo SIRO Brasil (Dinâmico)</Text>
-        <Text style={styles.description}>dados externos</Text>
+      <Text style={styles.title}>Modelo SIRO Brasil (Dinâmico) com previsão de 15 dias</Text>
+      <Text style={styles.description}>dados externos</Text>
 
+      <View style={styles.container}>
         <View style={styles.dataContainer}>
           <InputComponent
             disabledInput
@@ -226,10 +229,6 @@ export default function DynamicChartSIROBrazilParams() {
             maximumValue={0.8}
           />
 
-        </View>
-
-        <View style={[styles.dataContainer, { justifyContent: "center" }]}>
-
           <InputComponent
             disabledInput
             title="Taxa de Mortalidade"
@@ -243,22 +242,18 @@ export default function DynamicChartSIROBrazilParams() {
             maximumValue={0.03}
           />
 
-        <InputComponent
-            disabledInput
-            title="Dias até a recuperação"
-            placeholder="Ex.: 0.14"
-            value={Number(tr)}
-            onChangeState={setTr}
-            navigateTo={details.gamma}
-            toFixed={3}
-            step={0.00001}
-            minimumValue={1}
-            maximumValue={90}
-          />
-
-        </View>
-
-        <View style={[styles.dataContainer, { justifyContent: "center" }]}>
+          <InputComponent
+              disabledInput
+              title="Dias até a recuperação"
+              placeholder="Ex.: 0.14"
+              value={Number(tr)}
+              onChangeState={setTr}
+              navigateTo={details.gamma}
+              toFixed={3}
+              step={0.00001}
+              minimumValue={1}
+              maximumValue={90}
+            />
 
           <InputComponent
             disabledInput
@@ -286,10 +281,6 @@ export default function DynamicChartSIROBrazilParams() {
             maximumValue={90}
           />
 
-        </View>
-
-        <View style={[styles.dataContainer, { justifyContent: "center" }]}>
-
           <InputComponent
             disabledInput
             title="Dias até o fim da política de contenção"
@@ -303,144 +294,137 @@ export default function DynamicChartSIROBrazilParams() {
             maximumValue={90}
           />
 
+          <InputComponent
+              title="Data de início da previsão"
+              placeholder="Ex.: 01-01-2021"
+              value={dateStart}
+              onChangeState={setDateStart}
+            />
+
+          {invalidDates && (<Text style={{color: 'red', fontSize: 18, alignSelf: 'center', paddingBottom: 10 }}>Datas inválidas!</Text>)}
+
+          <View style={styles.buttonContainer}>
+            <TouchableHighlight
+              onPress={changeData}
+              underlayColor="#009083"
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Gerar gráfico</Text>
+            </TouchableHighlight>
+            <TouchableHighlight
+              onPress={resetValues}
+              underlayColor="#009083"
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Resetar valores</Text>
+            </TouchableHighlight>
+          </View>
+
         </View>
 
-        <View style={[styles.dataContainer, { justifyContent: "center" }]}>
-        <InputComponent
-            title="Data de início"
-            placeholder="Ex.: 01-01-2021"
-            value={dateStart}
-            onChangeState={setDateStart}
-          />
-        <InputComponent
-            title="Data de término"
-            placeholder="Ex.: 01-01-2021"
-            value={dateEnd}
-            onChangeState={setDateEnd}
-          />
+        <View style ={styles.chartContainer}>
+          {chartVisible && (
+            <>
+              <Text style={styles.chartTitle}>
+                Infectados: 
+              </Text>
+
+              <View style = {styles.chart}>
+                <LineChart
+                  data={
+                    dataBrazil.infectious
+                      ? {
+                          labels: data.chart.labels,
+                          datasets: [
+                            {
+                              data: dataBrazil.infectious.data,
+                              color: () => "#ff6e69",
+                            },                    
+                          ],
+                        }
+                      : {
+                          labels: data.chart.labels,
+                          datasets: [data.chart.datasets[1]],
+                        }
+                  }
+                  width={1000}
+                  height={chartHeight}
+                  segments={segments}
+                  chartConfig={chartConfig}
+                  withInnerLines={true}
+                  withVerticalLabels={withVerticalLabels}
+                />
+              </View>
+              
+              <Text style={styles.chartTitle}>
+                Recuperados: 
+              </Text>
+
+              <View style = {styles.chart}>
+
+                <LineChart
+                  data={
+                    dataBrazil.recovered
+                      ? {
+                          labels: data.chart.labels,
+                          datasets: [
+                            {
+                              data: dataBrazil.recovered.data,
+                              color: () => "#3fb551",
+                            },
+                          ],
+                        }
+                      : {
+                          labels: data.chart.labels,
+                          datasets: [data.chart.datasets[2]],
+                        }
+                  }
+                  width={1000}
+                  height={chartHeight}
+                  segments={segments}
+                  chartConfig={chartConfig}
+                  withInnerLines={true}
+                  withVerticalLabels={withVerticalLabels}
+                />
+              </View>
+              
+              <Text style={styles.chartTitle}>
+                Óbitos: 
+              </Text>
+
+              <View style = {styles.chart}>
+                <LineChart
+                  data={
+                    dataBrazil.deaths
+                      ? {
+                          labels: data.chart.labels,
+                          datasets: [
+                            {
+                              data: dataBrazil.deaths.data,
+                              color: () => "#f59740",
+                            },
+                          ],
+                        }
+                      : {
+                          labels: data.chart.labels,
+                          datasets: [data.chart.datasets[3]],
+                        }
+                  }
+                  width={1000}
+                  height={chartHeight}
+                  segments={segments}
+                  chartConfig={chartConfig}
+                  withInnerLines={true}
+                  withVerticalLabels={withVerticalLabels}
+                />
+              </View>   
+
+            </>
+            
+          )}
         </View>
-        {invalidDates && (<Text style={{color: 'red', fontSize: 18, alignSelf: 'center', paddingBottom: 10 }}>Datas inválidas!</Text>)}
-        <View style={styles.buttonContainer}>
-          <TouchableHighlight
-            onPress={changeData}
-            underlayColor="#009083"
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Gerar gráfico</Text>
-          </TouchableHighlight>
-          <TouchableHighlight
-            onPress={resetValues}
-            underlayColor="#009083"
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Resetar valores</Text>
-          </TouchableHighlight>
-        </View>
-        {chartVisible && (
-          <>
-            <Text style={styles.reproducaoBasica}>
-              Razão de reprodução básica(R0): {data.r0.toFixed(3)}
-            </Text>
-            <LineChart
-              data={
-                dataBrazil.infectious
-                  ? {
-                      labels: data.chart.labels,
-                      datasets: [
-                        {
-                          data: data.chart.datasets[1].data,
-                          color: () => "#ff6e69",
-                        },
-                        {
-                          data: dataBrazil.infectious.data,
-                          color: (opacity = 1) =>
-                            `rgba(63, 81, 181, ${opacity})`,
-                          strokeWidth: 0.01
-                        },
-                      ],
-                      legend: [data.chart.legend[1], "Infectados Brasil"],
-                    }
-                  : {
-                      labels: data.chart.labels,
-                      datasets: [data.chart.datasets[1]],
-                      legend: [data.chart.legend[1]],
-                    }
-              }
-              width={chartWidth}
-              height={chartHeight}
-              segments={segments}
-              chartConfig={chartConfig}
-              withInnerLines={withInnerLines}
-              withVerticalLabels={withVerticalLabels}
-            />
-            {console.log(data)}
-            <LineChart
-              data={
-                dataBrazil.recovered
-                  ? {
-                      labels: data.chart.labels,
-                      datasets: [
-                        {
-                          data: data.chart.datasets[2].data,
-                          color: () => "#3fb551",
-                        },
-                        {
-                          data: dataBrazil.recovered.data,
-                          color: (opacity = 1) =>
-                            `rgba(63, 81, 181, ${opacity})`,
-                          strokeWidth: 0.01
-                        },
-                      ],
-                      legend: [data.chart.legend[2], "Recuperados Brasil"],
-                    }
-                  : {
-                      labels: data.chart.labels,
-                      datasets: [data.chart.datasets[2]],
-                      legend: [data.chart.legend[2]],
-                    }
-              }
-              width={chartWidth}
-              height={chartHeight}
-              segments={segments}
-              chartConfig={chartConfig}
-              withInnerLines={withInnerLines}
-              withVerticalLabels={withVerticalLabels}
-            />
-            <LineChart
-              data={
-                dataBrazil.deaths
-                  ? {
-                      labels: data.chart.labels,
-                      datasets: [
-                        {
-                          data: data.chart.datasets[3].data,
-                          color: () => "#f59740",
-                        },
-                        {
-                          data: dataBrazil.deaths.data,
-                          color: (opacity = 1) =>
-                            `rgba(63, 81, 181, ${opacity})`,
-                          strokeWidth: 0.01
-                        },
-                      ],
-                      legend: [data.chart.legend[3], "Óbitos Brasil"],
-                    }
-                  : {
-                      labels: data.chart.labels,
-                      datasets: [data.chart.datasets[3]],
-                      legend: [data.chart.legend[3]],
-                    }
-              }
-              width={chartWidth}
-              height={chartHeight}
-              segments={segments}
-              chartConfig={chartConfig}
-              withInnerLines={withInnerLines}
-              withVerticalLabels={withVerticalLabels}
-            />
-          </>
-        )}
-      </ScrollView>
+
+      </View>
     </KeyboardAvoidingView>
   );
 }

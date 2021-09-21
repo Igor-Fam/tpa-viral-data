@@ -40,6 +40,11 @@ export default function Landing({ navigation }) {
     navigation.navigate("DynamicChartSIROBrazilParams");
   }
 
+  function navigateToDynamicChartSIROForecast() {
+    navigation.navigate("DynamicChartSIROForecast");
+  }
+
+
   function navigateToInfos() {
     navigation.navigate("Infos");
   }
@@ -56,7 +61,17 @@ export default function Landing({ navigation }) {
       <Text style={styles.title}>Viral Models</Text>
 
       <View>
-      <TouchableHighlight
+        <TouchableHighlight
+          underlayColor="#009083"
+          style={styles.button}
+          onPress={navigateToDynamicChartSIROForecast}
+        >
+          <Text style={styles.buttonText}>
+            Gerar gráfico SIRO Brasil (Dinâmico) com previsão de 15 dias
+          </Text>
+        </TouchableHighlight>
+
+        <TouchableHighlight
           underlayColor="#009083"
           style={styles.button}
           onPress={navigateToDynamicChartSIROBrazilParams}
