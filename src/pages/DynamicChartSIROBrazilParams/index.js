@@ -51,8 +51,8 @@ export default function DynamicChartSIROBrazilParams() {
   const [days, setDays] = useState("30");
   const [dateStartIndex, setDateStartIndex] = useState("0");
   const [dateEndIndex, setDateEndIndex] = useState("0");
-  const [dateStart, setDateStart] = useState("2020-05-18");
-  const [dateEnd, setDateEnd] = useState(yesterday.toISOString().split('T')[0]);
+  const [dateStart, setDateStart] = useState("2020-03-15");
+  const [dateEnd, setDateEnd] = /*useState(yesterday.toISOString().split('T')[0]);*/ useState("2020-07-28");
 
   const [m, setM] = useState(0.013);
   const [t0, setT0] = useState(34.9);
@@ -88,12 +88,12 @@ export default function DynamicChartSIROBrazilParams() {
 
         csvBrazil.forEach((element) => {
           const row = element.split(",");
-          confirmed.push(row[2]);
-          recovered.push(row[3]);
-          deaths.push(row[4]);
+          confirmed.push(parseFloat(row[2]));
+          recovered.push(parseFloat(row[3]));
+          deaths.push(parseFloat(row[4]));
           infectious.push(row[2]-row[3]-row[4]);
         });
-        
+        console.log(deaths);
         setInfectious(infectious[0]);
         setRecovered(recovered[0]);
         setDeath(deaths[0]);

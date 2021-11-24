@@ -81,6 +81,31 @@ export const details = {
     description:
       "Referente ao número de pessoas infectadas mortas em um período de tempo.",
   },
+  r: {
+    title: "Taxa de Redução de Contato",
+    description:
+      "Referente à porcentagem de redução da transmissão do vírus devido ao distanciamento social.",
+  },
+  tr: {
+    title: "Tempo de Recuperação",
+    description:
+      "Referente ao número de dias desde a infecção até a recuperação. Resulta da soma do período de incubação com o tempo dos sintomas à recuperação.",
+  },
+  to: {
+    title: "Tempo de Óbito",
+    description:
+      "Referente ao número de dias desde a infecção até o óbito. Resulta da soma do período de incubação com o tempo dos sintomas ao óbito.",
+  },
+  ti: {
+    title: "Tempo até a Política de Contenção",
+    description:
+      "Referente ao número de dias até a adoção das medidas de contenção.",
+  },
+  tf: {
+    title: "Tempo até o fim da Política de Contenção",
+    description:
+      "Referente ao número de dias até o término das medidas de contenção.",
+  },
 };
 
 //verifica se o valor informado é um numero inteiro
@@ -100,9 +125,7 @@ export function generateLabels(start, end) {
   let labels = [];
   let maxNumberOfLabels = 15;
   let intervalBetweenLabels = days / maxNumberOfLabels;
-  console.log("start: "+start+", end: "+end);
   for (let i = start; i <= start - 0.01 + (maxNumberOfLabels) * intervalBetweenLabels; i += intervalBetweenLabels) {
-    console.log(i);
     let date = moment("2020-01-22", "YYYY-MM-DD").add(i, "d");
     labels.push(date.format("DD/MM/YYYY"));
   }
@@ -266,7 +289,7 @@ export function validationSiroParams(
   start = 0,
   end = 0,
   m = 0,
-  t0 = 0,
+  to = 0,
   tr = 0,
   ti = 0,
   tf = 0,
@@ -285,7 +308,7 @@ export function validationSiroParams(
       start: parseInt(start),
       end: parseInt(end),
       m: parseFloat(m),
-      t0: parseFloat(t0),
+      to: parseFloat(to),
       tr: parseFloat(tr),
       ti: parseFloat(ti),
       tf: parseFloat(tf),

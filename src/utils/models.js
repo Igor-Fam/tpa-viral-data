@@ -139,7 +139,6 @@ export function siro_params({
   forecast = false
 
 }) {
-  
   let R0,
     step = 1,
     S = [],
@@ -170,7 +169,7 @@ export function siro_params({
     R[i] = R[i - 1] + gamma * I[i - 1] * deltaT;
     D[i] = D[i - 1] + beta * I[i - 1] * deltaT;
   }
-
+  console.log(I);
   const data = {
     chart: {
       labels: generateLabels((forecast ? start - 14 : start), end),
@@ -195,6 +194,111 @@ export function siro_params({
       legend: legend.siro,
     },
     r0: R0,
+  };
+  return data;
+}
+
+export function siro_victory({
+  days = 30,
+  population = 209300000,
+  infectious = 1,
+  recovered = 0,
+  death = 0,
+  start = 0,
+  end = 0,
+  m = 0.0184,
+  to = 28.4,
+  tr = 23.4,
+  ti = 29.1,
+  tf = 49.9,
+  r = 0.399,
+  b = 0.201
+}) {
+  let R0,
+    dt = 1,
+    n = days/dt,
+    S = [],
+    I = [],
+    R = [],
+    D = [],
+    gamma = (1-m)*(1/tr),
+    beta = m*(1/to);
+    
+    population = population - infectious - recovered - death;
+    
+    D[0] = death;
+    R[0] = recovered;
+    I[0] = infectious;
+    S[0] = population - infectious - death;
+    for (let i = 1; i<n; i++){
+    
+      let a = i<ti*n/days ? 1 : (i>tf/dt ? r : (1-r)/(ti/dt-tf/dt)*(i-ti/dt) + 1)
+      let alpha = a*b
+    
+      S[i] = (S[i - 1] - (alpha / population) * S[i - 1] * I[i - 1] * dt)
+      I[i] = (I[i - 1] + ((alpha / population) * S[i - 1] * I[i - 1] - (gamma + beta) * I[i - 1]) * dt)
+      R[i] = (R[i - 1] + gamma * I[i - 1] * dt)
+      D[i] = (D[i - 1] + beta * I[i - 1] * dt)
+    }
+    const data = {
+      S: [],
+      I: [],
+      R: [],
+      D: []
+    };
+    for(let i = 0; i<n; i+=1/dt){
+      data.S.push(S[i]);
+      data.I.push(I[i]);
+      data.R.push(R[i]);
+      data.D.push(D[i]);
+    }
+    console.log(data);
+  return data;
+}
+
+export function siro_victory_simplified({
+  days = 30,
+  population = 209300000,
+  infectious = 1,
+  recovered = 0,
+  death = 0,
+  alpha = 0.5,
+  gamma = 0.14,
+  beta = 0.065,
+  start = 0,
+  end = 0
+}) {
+  console.log(alpha, beta, gamma);  console.log(alpha, beta, gamma);
+  let R0,
+    step = 1,
+    S = [],
+    I = [],
+    R = [],
+    D = [];
+
+  const deltaT = 1 / step;
+
+  D[0] = death;
+  R[0] = recovered;
+  I[0] = infectious;
+  S[0] = population - infectious - death;
+
+  R0 = alpha / (gamma + beta);
+
+  for (let i = 1; i < days * step; i++) {
+    S[i] = S[i - 1] + -(alpha / population) * S[i - 1] * I[i - 1] * deltaT;
+    I[i] =
+      I[i - 1] +
+      ((alpha / population) * S[i - 1] * I[i - 1] - (gamma + beta) * I[i - 1]) *
+        deltaT;
+    R[i] = R[i - 1] + gamma * I[i - 1] * deltaT;
+    D[i] = D[i - 1] + beta * I[i - 1] * deltaT;
+  }
+  const data = {
+    S: S,
+    I: I,
+    R: R,
+    D: D
   };
   return data;
 }

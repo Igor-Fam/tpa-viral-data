@@ -21,10 +21,6 @@ export default function Details({ route, navigation }) {
     >
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
-
-      <TouchableHighlight style={styles.button}>
-        <Text style={styles.buttonText}>Saiba mais</Text>
-      </TouchableHighlight>
     </ScrollView>
   );
 }

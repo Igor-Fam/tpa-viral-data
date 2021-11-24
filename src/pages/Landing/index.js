@@ -44,6 +44,13 @@ export default function Landing({ navigation }) {
     navigation.navigate("DynamicChartSIROForecast");
   }
 
+  function navigateToDynamicChartSIROVictory() {
+    navigation.navigate("DynamicChartSIROVictory");
+  }
+
+  function navigateToDynamicChartSIROSimplified() {
+    navigation.navigate("DynamicChartSIROSimplified");
+  }
 
   function navigateToInfos() {
     navigation.navigate("Infos");
@@ -61,6 +68,26 @@ export default function Landing({ navigation }) {
       <Text style={styles.title}>Viral Models</Text>
 
       <View>
+        <TouchableHighlight
+          underlayColor="#009083"
+          style={styles.button}
+          onPress={navigateToDynamicChartSIROVictory}
+        >
+          <Text style={styles.buttonText}>
+            Gerar gráfico SIRO Brasil (Dinâmico) com o Victory
+          </Text>
+        </TouchableHighlight>
+
+        <TouchableHighlight
+          underlayColor="#009083"
+          style={styles.button}
+          onPress={navigateToDynamicChartSIROSimplified}
+        >
+          <Text style={styles.buttonText}>
+            Gerar gráfico SIRO Brasil (Dinâmico) Simplificado
+          </Text>
+        </TouchableHighlight>
+
         <TouchableHighlight
           underlayColor="#009083"
           style={styles.button}

@@ -15,26 +15,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import InputComponent from "../../components/InputComponent/index.js";
 
-import { LineChart } from "react-native-chart-kit";
+import { siro_params, siro_victory } from "../../utils/models.js";
 
-import { siro_params } from "../../utils/models.js";
+import { VictoryLine, VictoryScatter, VictoryChart, VictoryAxis, VictoryZoomContainer } from 'victory';
+
+import moment from 'moment';
+moment().format();
 
 import {
   details,
-  segments,
-  dataShown,
-  chartWidth,
-  chartHeight,
-  chartConfig,
-  withInnerLines,
-  withVerticalLabels,
-  validationSiro,
   validationSiroParams,
 } from "../../utils/utils.js";
 
 import styles from "./styles";
 
-export default function DynamicChartSIROBrazilForecast() {
+export default function DynamicChartSIROVictory() {
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1)
@@ -51,18 +46,16 @@ export default function DynamicChartSIROBrazilForecast() {
   const [days, setDays] = useState("30");
   const [dateStartIndex, setDateStartIndex] = useState("0");
   const [dateEndIndex, setDateEndIndex] = useState("0");
-  const [dateStart, setDateStart] = useState("2020-05-18");
-  const [dateEnd, setDateEnd] = useState(yesterday.toISOString().split('T')[0]);
+  const [dateStart, setDateStart] = useState("2020-03-15");
+  const [dateEnd, setDateEnd] = /*useState(yesterday.toISOString().split('T')[0]);*/ useState("2020-05-24");
 
-  const [m, setM] = useState(0.013);
-  const [t0, setT0] = useState(34.9);
+  const [m, setM] = useState(0.022);
+  const [to, setTo] = useState(34.9);
   const [tr, setTr] = useState(20.58);
   const [ti, setTi] = useState(18.07);
   const [tf, setTf] = useState(22.3);
-  const [r, setR] = useState(0.7);
-  const [b, setB] = useState(0.11);
-  const [gamma, setGamma] = useState((1-m)*(1/tr));
-  const [beta, setBeta] = useState(m*1/t0);
+  const [r, setR] = useState(0.48);
+  const [b, setB] = useState(0.23);
 
   useEffect(()=> {
     axios
@@ -82,8 +75,6 @@ export default function DynamicChartSIROBrazilForecast() {
           return line.includes("Brazil");
         });
 
-        setDays(`${csvBrazil.length}`);
-
         csvBrazil = dateFilter(csvBrazil);
         
         csvBrazil.forEach((element) => {
@@ -93,28 +84,23 @@ export default function DynamicChartSIROBrazilForecast() {
           deaths.push(row[4]);
           infectious.push(row[2]-row[3]-row[4]);
         });
-        setInfectious(infectious[infectious.length-1]);
-        setRecovered(recovered[recovered.length-1]);
-        setDeath(deaths[deaths.length-1]);
+        setInfectious(infectious[0]);
+        setRecovered(recovered[0]);
+        setDeath(deaths[0]);
 
-        const csvDataBrazil = {
-          infectious: {
-            data: dataShown(infectious),
-          },
-          recovered: {
-            data: dataShown(recovered),
-          },
-          deaths: {
-            data: dataShown(deaths),
-          },
+        var csvDataBrazil = {
+          infectious: infectious,
+          recovered: recovered,
+          deaths: deaths
         };
+
         storeData(csvDataBrazil);
         setDataBrazil(csvDataBrazil);
       })
       .catch((error) => {
         getDataFromAsync();
       });
-    }, [dateStart, dateEnd]);
+    }, [data]);
 
   async function storeData(value) {
     try {
@@ -135,14 +121,20 @@ export default function DynamicChartSIROBrazilForecast() {
   }
 
   function dateFilter(allData) {
-    let forecastStart = allData.findIndex(line=>line.includes(dateStart));
-    let dateFilterStart = (forecastStart <= 14 ? 0 : forecastStart - 14)
-    let dateFilterEnd = forecastStart + 15;
+    let dateFilterStart = allData.findIndex(line=>line.includes(dateStart));
+    let dateFilterEnd = allData.findIndex(line=>line.includes(dateEnd));
+    if(dateFilterEnd<=dateFilterStart){
+      setDateStartIndex(0);
+      setDateEndIndex(allData.length);
+      setInvalidDates(true);
+      return allData;
+    }
     setInvalidDates(false);
-    setDateStartIndex(forecastStart);
+    setDateStartIndex(dateFilterStart);
     setDateEndIndex(dateFilterEnd);
+    setDays(dateFilterEnd - dateFilterStart);
 
-    return (allData.slice(dateFilterStart, forecastStart));
+    return (allData.slice(dateFilterStart, dateFilterEnd));
   }
 
   function changeData() {
@@ -155,30 +147,38 @@ export default function DynamicChartSIROBrazilForecast() {
       dateStartIndex,
       dateEndIndex,
       m,
-      t0,
+      to,
       tr,
       ti,
       tf,
       r,
-      b,
-      true
+      b
     );
     if (isValid.response) {
-      let response = siro_params(isValid.message);
-      console.log(response);
-      console.log(dataBrazil);
-      response.chart.datasets[1].data.shift();
-      response.chart.datasets[2].data.shift();
-      response.chart.datasets[3].data.shift();
-      let auxDataBrazil = dataBrazil;
-      Array.prototype.push.apply(auxDataBrazil.infectious.data, response.chart.datasets[1].data);
-      Array.prototype.push.apply(auxDataBrazil.recovered.data, response.chart.datasets[2].data);
-      Array.prototype.push.apply(auxDataBrazil.deaths.data, response.chart.datasets[3].data);
-      response.chart.datasets[1].data = auxDataBrazil.infectious.data;
-      response.chart.datasets[2].data = auxDataBrazil.recovered.data;
-      response.chart.datasets[3].data = auxDataBrazil.deaths.data;
-      console.log(dataBrazil);
-      setData(response);
+      var response = siro_victory(isValid.message);
+      var newData = {S: [],
+                     I: [],
+                     R: [],
+                     D: []};
+      console.log(dateStartIndex, dateEndIndex);
+      for (let i = 0; i < dateEndIndex - dateStartIndex; i++){
+        newData.S.push({ x: i, y: response.S[i]});
+        newData.I.push({ x: i, y: response.I[i]});
+        newData.R.push({ x: i, y: response.R[i]});
+        newData.D.push({ x: i, y: response.D[i]});
+      }
+      setData(newData);
+      var newDataBrazil = {
+        infectious: [],
+        recovered: [],
+        deaths: []
+      };
+      for (let i = 0; i < dateEndIndex - dateStartIndex; i++){
+        newDataBrazil.infectious.push({ x: i, y: parseFloat(dataBrazil.infectious[i])});
+        newDataBrazil.recovered.push({ x: i, y: parseFloat(dataBrazil.recovered[i])});
+        newDataBrazil.deaths.push({ x: i, y: parseFloat(dataBrazil.deaths[i])});
+      }
+      setDataBrazil(newDataBrazil);
       setChartVisible(true);
     } else {
       Alert.alert("Atenção!", isValid.message);
@@ -187,14 +187,22 @@ export default function DynamicChartSIROBrazilForecast() {
   }
 
   function resetValues() {
-    setSusceptible("209300000");
+    setSusceptible(209300000);
     setInfectious("1");
     setRecovered("0");
     setDeath("0");
     setDays("30");
-    setAlpha("0.5");
-    setGamma("0.14");
-    setBeta("0.065");
+    setDateStartIndex("0");
+    setDateEndIndex("0");
+    setDateStart("2020-03-15");
+    setDateEnd("2020-07-28");
+    setM(0.0184);
+    setTo(28.4);
+    setTr(23.4);
+    setTi(29.1);
+    setTf(49.9);
+    setR(0.399);
+    setB(0.201);
   }
 
   return (
@@ -204,7 +212,6 @@ export default function DynamicChartSIROBrazilForecast() {
     >
       <Text style={styles.title}>Modelo SIRO Brasil (Dinâmico) com previsão de 15 dias</Text>
       <Text style={styles.description}>dados externos</Text>
-
       <View style={styles.container}>
         <View style={styles.dataContainer}>
           <InputComponent
@@ -226,7 +233,7 @@ export default function DynamicChartSIROBrazilForecast() {
             placeholder="Ex.: 0.399"
             value={Number(r)}
             onChangeState={setR}
-            navigateTo={details.gamma}
+            navigateTo={details.r}
             toFixed={3}
             step={0.001}
             minimumValue={0}
@@ -243,7 +250,7 @@ export default function DynamicChartSIROBrazilForecast() {
             toFixed={3}
             step={0.0001}
             minimumValue={0}
-            maximumValue={0.03}
+            maximumValue={0.15}
           />
 
           <InputComponent
@@ -252,7 +259,7 @@ export default function DynamicChartSIROBrazilForecast() {
               placeholder="Ex.: 0.14"
               value={Number(tr)}
               onChangeState={setTr}
-              navigateTo={details.gamma}
+              navigateTo={details.tr}
               toFixed={3}
               step={0.00001}
               minimumValue={1}
@@ -263,9 +270,9 @@ export default function DynamicChartSIROBrazilForecast() {
             disabledInput
             title="Dias até o óbito"
             placeholder="Ex.: 0.14"
-            value={Number(t0)}
-            onChangeState={setT0}
-            navigateTo={details.gamma}
+            value={Number(to)}
+            onChangeState={setTo}
+            navigateTo={details.to}
             toFixed={3}
             step={0.00001}
             minimumValue={1}
@@ -278,7 +285,7 @@ export default function DynamicChartSIROBrazilForecast() {
             placeholder="Ex.: 0.14"
             value={Number(ti)}
             onChangeState={setTi}
-            navigateTo={details.gamma}
+            navigateTo={details.ti}
             toFixed={3}
             step={0.00001}
             minimumValue={1}
@@ -291,7 +298,7 @@ export default function DynamicChartSIROBrazilForecast() {
             placeholder="Ex.: 0.14"
             value={Number(tf)}
             onChangeState={setTf}
-            navigateTo={details.gamma}
+            navigateTo={details.tf}
             toFixed={3}
             step={0.00001}
             minimumValue={1}
@@ -299,11 +306,18 @@ export default function DynamicChartSIROBrazilForecast() {
           />
 
           <InputComponent
-              title="Data de início da previsão"
-              placeholder="Ex.: 01-01-2021"
-              value={dateStart}
-              onChangeState={setDateStart}
-            />
+            title="Data de início"
+            placeholder="Ex.: 01-01-2021"
+            value={dateStart}
+            onChangeState={setDateStart}
+          />
+
+          <InputComponent
+            title="Data de término"
+            placeholder="Ex.: 01-01-2021"
+            value={dateEnd}
+            onChangeState={setDateEnd}
+          />
 
           {invalidDates && (<Text style={{color: 'red', fontSize: 18, alignSelf: 'center', paddingBottom: 10 }}>Datas inválidas!</Text>)}
 
@@ -325,7 +339,6 @@ export default function DynamicChartSIROBrazilForecast() {
           </View>
 
         </View>
-
         <View style ={styles.chartContainer}>
           {chartVisible && (
             <>
@@ -334,30 +347,29 @@ export default function DynamicChartSIROBrazilForecast() {
               </Text>
 
               <View style = {styles.chart}>
-                <LineChart
-                  data={
-                    dataBrazil.infectious
-                      ? {
-                          labels: data.chart.labels,
-                          datasets: [
-                            {
-                              data: dataBrazil.infectious.data,
-                              color: () => "#ff6e69",
-                            },                    
-                          ],
-                        }
-                      : {
-                          labels: data.chart.labels,
-                          datasets: [data.chart.datasets[1]],
-                        }
-                  }
-                  width={1000}
-                  height={chartHeight}
-                  segments={segments}
-                  chartConfig={chartConfig}
-                  withInnerLines={true}
-                  withVerticalLabels={withVerticalLabels}
-                />
+                <VictoryChart width={1000} containerComponent={<VictoryZoomContainer/>}>
+                  <VictoryAxis
+                    tickFormat={(x) => (moment(dateStart, "YYYY-MM-DD").add(x, "d").format("DD/MM"))}
+                  />
+                  <VictoryAxis
+                    dependentAxis
+                    // tickFormat specifies how ticks should be displayed
+                    tickFormat={(x) => (`${x / 1000000} mi`)}
+                  />
+                  <VictoryScatter
+                    style={{ data: { fill: "#3f51b5" } }}
+                    size={2}
+                    data={dataBrazil.infectious}
+                  />
+                  <VictoryLine
+                    style={{
+                      data: { stroke: "#ff6e69" },
+                      parent: { border: "1px solid #ccc"}
+                    }}
+                    data={data.I}
+                  />
+                </VictoryChart>
+                
               </View>
               
               <Text style={styles.chartTitle}>
@@ -365,32 +377,28 @@ export default function DynamicChartSIROBrazilForecast() {
               </Text>
 
               <View style = {styles.chart}>
-
-                <LineChart
-                  data={
-                    dataBrazil.recovered
-                      ? {
-                          labels: data.chart.labels,
-                          datasets: [
-                            {
-                              data: dataBrazil.recovered.data,
-                              color: () => "#3fb551",
-                            },
-                          ],
-                        }
-                      : {
-                          labels: data.chart.labels,
-                          datasets: [data.chart.datasets[2]],
-                        }
-                  }
-                  
-                  width={1000}
-                  height={chartHeight}
-                  segments={segments}
-                  chartConfig={chartConfig}
-                  withInnerLines={true}
-                  withVerticalLabels={withVerticalLabels}
-                />
+                <VictoryChart width={1000} containerComponent={<VictoryZoomContainer/>}>
+                    <VictoryAxis
+                      tickFormat={(x) => (moment(dateStart, "YYYY-MM-DD").add(x, "d").format("DD/MM"))}
+                    />
+                    <VictoryAxis
+                      dependentAxis
+                      // tickFormat specifies how ticks should be displayed
+                      tickFormat={(x) => (`${x / 1000000} mi`)}
+                    />
+                    <VictoryScatter
+                      style={{ data: { fill: "#3f51b5" } }}
+                      size={2}
+                      data={dataBrazil.recovered}
+                    />
+                    <VictoryLine
+                      style={{
+                        data: { stroke: "#3fb551" },
+                        parent: { border: "1px solid #ccc"}
+                      }}
+                      data={data.R}
+                    />
+                  </VictoryChart>
               </View>
               
               <Text style={styles.chartTitle}>
@@ -398,30 +406,28 @@ export default function DynamicChartSIROBrazilForecast() {
               </Text>
 
               <View style = {styles.chart}>
-                <LineChart
-                  data={
-                    dataBrazil.deaths
-                      ? {
-                          labels: data.chart.labels,
-                          datasets: [
-                            {
-                              data: dataBrazil.deaths.data,
-                              color: () => "#f59740",
-                            },
-                          ],
-                        }
-                      : {
-                          labels: data.chart.labels,
-                          datasets: [data.chart.datasets[3]],
-                        }
-                  }
-                  width={1000}
-                  height={chartHeight}
-                  segments={segments}
-                  chartConfig={chartConfig}
-                  withInnerLines={true}
-                  withVerticalLabels={withVerticalLabels}
-                />
+                <VictoryChart width={1000} containerComponent={<VictoryZoomContainer/>}>
+                    <VictoryAxis
+                      tickFormat={(x) => (moment(dateStart, "YYYY-MM-DD").add(x, "d").format("DD/MM"))}
+                    />
+                    <VictoryAxis
+                      dependentAxis
+                      // tickFormat specifies how ticks should be displayed
+                      tickFormat={(x) => (`${x / 1000000} mi`)}
+                    />
+                    <VictoryScatter
+                      style={{ data: { fill: "#3f51b5" } }}
+                      size={2}
+                      data={dataBrazil.deaths}
+                    />
+                    <VictoryLine
+                      style={{
+                        data: { stroke: "#f59740" },
+                        parent: { border: "1px solid #ccc"}
+                      }}
+                      data={data.D}
+                    />
+                  </VictoryChart>
               </View>   
 
             </>
